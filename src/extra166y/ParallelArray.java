@@ -5,28 +5,32 @@ import java.util.concurrent.Executors;
 
 public class ParallelArray<T> {
 	T[] array;
-//	private final ExecutorService executor;
+
+	// private final ExecutorService executor;
 
 	@SuppressWarnings("unchecked")
 	private ParallelArray(int size, ExecutorService executor) {
-//		this.executor = executor;
+		// this.executor = executor;
 		array = (T[]) new Object[size];
 	}
 
 	private ParallelArray(T[] source, ExecutorService executor) {
 		array = source;
-//		this.executor = executor;
+		// this.executor = executor;
 	}
 
 	public static ExecutorService defaultExecutor() {
-		return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		return Executors.newFixedThreadPool(Runtime.getRuntime()
+				.availableProcessors());
 	}
 
-	public static <T> ParallelArray<T> create(int size, Class<? super T> elementType, ExecutorService executor) {
+	public static <T> ParallelArray<T> create(int size,
+			Class<? super T> elementType, ExecutorService executor) {
 		return new ParallelArray<T>(size, executor);
 	}
 
-	public static <T> ParallelArray<T> createUsingHandoff(T[] source, ExecutorService executor) {
+	public static <T> ParallelArray<T> createUsingHandoff(T[] source,
+			ExecutorService executor) {
 		return new ParallelArray<T>(source, executor);
 	}
 
@@ -49,7 +53,14 @@ public class ParallelArray<T> {
 		}
 	}
 
-	public void replaceWithGeneratedValue(final Ops.Generator<? super T> generator) {
+	public void applyWithIndexSeq(Ops.ProcedureWithIndex<? super T> procedure) {
+		for (int i = 0; i < array.length; i++) {
+			procedure.op(i, array[i]);
+		}
+	}
+
+	public void replaceWithGeneratedValue(
+			final Ops.Generator<? super T> generator) {
 		for (int i = 0; i < array.length; i++) {
 			final int j = i;
 			Thread thread = new Thread(new Runnable() {
@@ -73,8 +84,10 @@ public class ParallelArray<T> {
 		return array;
 	}
 
-	public static <T> ParallelArray<T> createFromCopy(T[] array, ExecutorService defaultExecutor) {
-		ParallelArray<T> pa = new ParallelArray<T>(array.clone(), defaultExecutor);
+	public static <T> ParallelArray<T> createFromCopy(T[] array,
+			ExecutorService defaultExecutor) {
+		ParallelArray<T> pa = new ParallelArray<T>(array.clone(),
+				defaultExecutor);
 		return pa;
 	}
 }
